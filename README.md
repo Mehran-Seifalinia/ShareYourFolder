@@ -1,4 +1,4 @@
-# ShareYourFolder
+# Share Your Folder
 This script helps you to share any folder anywhere on your local network.
 <br />it's possible to use the script on both:
 * Windows ([Click here to download](https://github.com/Mehran-Seifalinia/ShareYourFolder/raw/main/Windows/ShareYourFolder.exe))
