@@ -4,7 +4,7 @@ This script helps you to share any folder anywhere on your local network.
 * Windows ([Click here to download](https://github.com/Mehran-Seifalinia/ShareYourFolder/raw/main/Windows/ShareYourFolder.exe))
 * Linux ([Show python source](https://raw.githubusercontent.com/Mehran-Seifalinia/ShareYourFolder/main/Linux/ShareYourFolder.py))
 * ShareFolder Installer Source ([Show](https://raw.githubusercontent.com/Mehran-Seifalinia/ShareYourFolder/main/Linux/sharefolder_installer.py))
-* Installer Linux ([Download]())
+* Installer Linux ([Download](https://raw.githubusercontent.com/pyAref/ShareYourFolder/main/sharefolder.sh))
 <hr>
 
 # How to use
