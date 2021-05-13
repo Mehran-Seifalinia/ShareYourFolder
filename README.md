@@ -46,3 +46,6 @@ $ sharefolder
 * [v 1.1.0:](https://github.com/Mehran-Seifalinia/ShareYourFolder/commit/f220973ade7f7f07f1b28e68b44e3087a8b35dba#diff-5f8b34a0a255b67a1623b5e000b9eb1c16020346eb68df13896e123a0f94081b)
   * Add linux installer.
   * Add .sh file.
+* [v 1.2.0:](https://github.com/Mehran-Seifalinia/ShareYourFolder/commit/1b34e1365de0c442a38acb578aad8c36e7d43bcb)
+  * Add color for IP.
+  * Show local IP address instead of 127.0.0.1 .
