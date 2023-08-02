@@ -1,0 +1,2 @@
+findmyip >= 1.2.0
+colorama >= 0.4.6
