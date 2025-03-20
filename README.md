@@ -1,27 +1,26 @@
 # Share Your Folder
 
 ## Description
-Share Your Folder is a Python script that allows you to easily share any folder on your local network. Whether you are using Windows or Linux, this script provides a simple way to share files with other computers on the network.
+Share Your Folder is an enhanced Python script that allows you to easily share any folder on your local network. With improved security, better error handling, and an intuitive interface, this script works seamlessly on both Windows and Linux.
 
 ## Features
-- Cross-platform support: The script can be used on both Windows and Linux systems.
-- Easy to use: Simply download the appropriate file for your operating system and run the script.
-- Browser-based access: Other computers on the network can access the shared folder by entering the source system's IP address and port in their web browsers.
+- **Cross-platform support**: Runs on both Windows and Linux.
+- **Improved security**: Uses `SimpleHTTPRequestHandler` for better performance and security.
+- **Easy setup**: Choose the folder you want to share using a graphical interface (Linux only).
+- **Automatic IP detection**: Displays your local IP address without requiring external dependencies.
+- **User-friendly error handling**: Prevents crashes and provides clear messages.
+- **Browser-based access**: Other devices can access the shared folder by entering the host IP and port in a web browser.
 
 ## Download Links
 - **Windows**: [Download ShareYourFolder v1.1 for Windows](https://github.com/Mehran-Seifalinia/ShareYourFolder/raw/main/Windows/ShareYourFolder%20v1.1.exe)
 - **Linux**: [View Python source code](https://raw.githubusercontent.com/Mehran-Seifalinia/ShareYourFolder/main/Linux/ShareFolder.py)
 - **Linux Installer Source**: [View](https://raw.githubusercontent.com/pyAref/ShareYourFolder/main/Linux/sharefolder_installer.py)
 
-## Screenshots
-![Image1](https://github.com/Mehran-Seifalinia/ShareYourFolder/blob/main/Image/Image(1).png)
-![Image2](https://github.com/Mehran-Seifalinia/ShareYourFolder/blob/main/Image/Image(2).png)
-![Image3](https://github.com/pyAref/ShareYourFolder/blob/main/Image/Image(3).png)
-
 ## How to Use
 1. Download the appropriate file for your operating system.
-2. Paste the downloaded file into the folder you want to share.
-3. Run the script and enter a port number to share the folder.
+2. Run the script and select the folder you want to share (Linux only) or place the script in the desired folder.
+3. Enter the port number or use the default (8080).
+4. Access the shared folder via `http://your-local-ip:port` in any web browser.
 
 ## Change Log
 ### Windows:
@@ -48,9 +47,15 @@ Share Your Folder is a Python script that allows you to easily share any folder 
   - Change the module install workflow.
   - Add except when the user stopped the server.
   - Fix minor bugs.
+- [v2.0.0](https://github.com/Mehran-Seifalinia/ShareYourFolder/commit/db3201fedab0c12955d0f34e89c96506c7e543be)
+  - Added a graphical folder selection (Tkinter).
+  - Improved exception handling and cleaner shutdown process.
+  - Switched to `SimpleHTTPRequestHandler` for stability and security.
+  - Optimized module installation workflow.
+  - Enhanced local IP detection without using external modules.
 
 ## License
 This project is licensed under the [MIT License](https://github.com/Mehran-Seifalinia/ShareYourFolder/blob/main/LICENSE).
 
 ## Contributing
-Contributions to this project are welcome. Feel free to open issues and submit pull requests on the [GitHub repository](https://github.com/Mehran-Seifalinia/ShareYourFolder).
+Contributions are welcome! Feel free to open issues and submit pull requests on the [GitHub repository](https://github.com/Mehran-Seifalinia/ShareYourFolder).
