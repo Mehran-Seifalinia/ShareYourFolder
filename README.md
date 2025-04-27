@@ -35,6 +35,8 @@ Share Your Folder is an enhanced Python script that allows you to easily share a
   - Switched to `SimpleHTTPRequestHandler` for stability and security.
   - Optimized module installation workflow.
   - Enhanced local IP detection without using external modules.
+- [v2.0.1](https://github.com/Mehran-Seifalinia/ShareYourFolder/commit/26cb3dc3f0fc03fbffcf49eacaceff134ef44471)
+  - Fix `EXE` error
 
 ### Linux:
 - [v1.0.0](https://github.com/Mehran-Seifalinia/ShareYourFolder/commit/a6d872fe0165ef6f66f8918c243bf2884558cf0b)
