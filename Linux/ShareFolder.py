@@ -4,33 +4,29 @@ from argparse import ArgumentParser
 from os import chdir, getcwd
 from socket import socket, AF_INET, SOCK_DGRAM
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from tkinter import filedialog, Tk, simpledialog
+from tkinter import filedialog, Tk, simpledialog, messagebox
 from sys import exit as sys_exit
 from colorama import init as colorama_init, Fore, Style
 
-# Initialize colorama for colored terminal output
+# Initialize colorama for consistent color output (only used if console is available)
 colorama_init(autoreset=True)
 
 def get_local_ip():
     """
-    Retrieve the local IP address by connecting to an external host.
-    Returns '127.0.0.1' if the connection fails, indicating no network access.
+    Retrieve the local IP address used for outgoing internet connections.
+    Returns 127.0.0.1 if no network is available.
     """
     with socket(AF_INET, SOCK_DGRAM) as s:
         try:
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-            if ip == "127.0.0.1":
-                print(f"{Fore.RED}Warning: Could not detect local IP address. Using loopback (127.0.0.1).{Style.RESET_ALL}")
-            return ip
+            s.connect(("8.8.8.8", 80))  # This doesn't send data, just determines the local IP
+            return s.getsockname()[0]
         except Exception:
-            print(f"{Fore.RED}Warning: Network unreachable. Using loopback IP (127.0.0.1).{Style.RESET_ALL}")
             return "127.0.0.1"
 
 def choose_directory():
     """
-    Allow the user to select a directory via a graphical dialog (Tkinter).
-    If no selection is made, return current working directory and notify user.
+    Show a GUI folder selection dialog using Tkinter.
+    Falls back to current directory if user cancels.
     """
     root = Tk()
     root.withdraw()
@@ -38,43 +34,33 @@ def choose_directory():
     if folder_selected:
         return folder_selected
     else:
-        cwd = getcwd()
-        print(f"{Fore.YELLOW}No folder selected. Using current directory: {cwd}{Style.RESET_ALL}")
-        return cwd
+        return getcwd()
 
 class ShareFolder:
     """
-    Class to handle setting up and running the file-sharing HTTP server.
+    Class responsible for setting up and running the HTTP file-sharing server.
     """
 
     def __init__(self, directory=None, port=80):
-        self.original_directory = getcwd()
+        self.original_directory = getcwd()  # Save original directory for later restoration
         self.current_directory = directory if directory else choose_directory()
         self.port = port
 
-        # Color setup
-        self.white = Fore.WHITE
-        self.red = Fore.RED
-        self.green = Fore.GREEN
-        self.yellow = Fore.YELLOW
-        self.reset = Style.RESET_ALL
-
     def setup_port(self):
         """
-        Prompt user for port number. If in GUI mode (no console), use a dialog box.
+        Ask user for a custom port number.
+        Tries console input; falls back to GUI dialog if console is unavailable.
         """
         try:
-            # Attempt console input
-            user_input = input(f"{self.green}Sharing folder: \"{self.current_directory}\"\n"
-                               f"Enter port number (default: {self.port}): {self.reset}").strip()
+            # Try console input (works only if console is available)
+            user_input = input(f"Sharing folder: \"{self.current_directory}\"\n"
+                               f"Enter port number (default: {self.port}): ").strip()
             if user_input:
                 port_candidate = int(user_input)
                 if 1 <= port_candidate <= 65535:
                     self.port = port_candidate
-                else:
-                    print(f"{self.red}Port out of range. Using default: {self.port}{self.reset}")
         except (RuntimeError, EOFError):
-            # Fallback to GUI prompt
+            # If running in --noconsole mode, use GUI instead
             root = Tk()
             root.withdraw()
             port_candidate = simpledialog.askinteger(
@@ -88,46 +74,55 @@ class ShareFolder:
 
     def run_server(self):
         """
-        Start the HTTP server and serve the chosen directory.
+        Start the HTTP server and show connection info using GUI.
+        If the port is in use, show an error popup.
         """
         chdir(self.current_directory)
         httpd = None
         try:
             server_address = ("", self.port)
             httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
-            print(f"{self.green}Server running at: http://{get_local_ip()}:{self.port}{self.reset}")
-            print(f"{self.yellow}Press Ctrl+C to stop the server.{self.reset}")
+
+            # Build the server URL and show it
+            ip = get_local_ip()
+            server_url = f"http://{ip}:{self.port}"
+
+            root = Tk()
+            root.withdraw()
+            messagebox.showinfo("Server Started", f"Server is running at:\n{server_url}\n\n"
+                                                  "Leave this window open while sharing files.\n"
+                                                  "Close it to stop the server.")
+
             httpd.serve_forever()
+
         except OSError as e:
-            print(f"{self.red}Error: {e}{self.reset}")
+            root = Tk()
+            root.withdraw()
+            messagebox.showerror("Server Error", f"Failed to start server:\n{str(e)}")
             return 1
-        except KeyboardInterrupt:
-            print(f"\n{self.red}Server stopped by user.{self.reset}")
-            if httpd:
-                httpd.shutdown()
-            return 0
+
         finally:
             chdir(self.original_directory)
 
     def run(self):
         """
-        Main entry point: setup port and run server.
+        Entry point: configure the port and start the server.
         """
         self.setup_port()
         return self.run_server()
 
 def main():
     """
-    Parse CLI args and start the server.
+    Parse command-line arguments (optional) and launch the ShareFolder server.
     """
-    parser = ArgumentParser(description="Share a folder over HTTP on local network.")
+    parser = ArgumentParser(description="Share a folder over HTTP on the local network.")
     parser.add_argument("-d", "--directory", type=str,
-                        help="Directory to share. If omitted, GUI dialog is shown.")
+                        help="Directory to share. If omitted, a folder selection dialog will appear.")
     parser.add_argument("-p", "--port", type=int, default=80,
                         help="Port to listen on (default: 80)")
     args = parser.parse_args()
 
-    # Validate port
+    # Validate the port range
     if args.port < 1 or args.port > 65535:
         print(f"{Fore.RED}Error: Port must be between 1 and 65535.{Style.RESET_ALL}")
         return 1
