@@ -14,9 +14,8 @@ This script supports both Windows and Linux platforms and can be compiled into a
 - 📛 **Friendly error handling**: Handles exceptions gracefully and provides clear messages
 
 ## 📥 Download Links
-- **Windows**: [Download ShareYourFolder v2.0 for Windows](https://raw.githubusercontent.com/Mehran-Seifalinia/ShareYourFolder/refs/heads/main/ShareFolderv2.0.exe)
+- **Windows**: [Download ShareYourFolder v2.2.0 for Windows](https://github.com/Mehran-Seifalinia/ShareYourFolder/blob/main/Linux/ShareFolder.py)
 - **Linux**: [View Python source code](https://raw.githubusercontent.com/Mehran-Seifalinia/ShareYourFolder/main/Linux/ShareFolder.py)
-- **Linux Installer Source**: [View Installer](https://raw.githubusercontent.com/pyAref/ShareYourFolder/main/Linux/sharefolder_installer.py)
 
 ## 🛠️ How to Use
 1. Download the appropriate file for your system.
@@ -32,6 +31,7 @@ This script supports both Windows and Linux platforms and can be compiled into a
 - **v1.1**: Show real local IP; colored output.
 - **v2.0.0**: GUI for folder selection; exception handling; SimpleHTTPRequestHandler for stability; better IP detection.
 - **v2.0.1**: Fixed `EXE` error
+- **v2.2.0**: Fixed Empty response error
 
 ### Linux:
 - **v1.0.0**: Initial release.
@@ -42,6 +42,7 @@ This script supports both Windows and Linux platforms and can be compiled into a
 - **v2.0.0**: GUI for folder selection; exception handling; SimpleHTTPRequestHandler; better IP detection.
 - **v2.0.1**: Fixed `EXE` error
 - **2.1.0**: Refactored imports and exit handling for `EXE` compatibility and code clarity.
+- **v2.2.0**: Simplify shutdown logic
 
 ## License
 Licensed under the [MIT License](https://github.com/Mehran-Seifalinia/ShareYourFolder/blob/main/LICENSE).
