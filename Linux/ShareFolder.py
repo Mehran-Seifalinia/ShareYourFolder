@@ -11,6 +11,13 @@ from signal import signal, SIGINT
 from threading import Thread
 
 
+# Custom handler to avoid logging to stderr (which becomes None in --noconsole exe)
+class SilentHTTPHandler(SimpleHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Suppress all log messages to prevent AttributeError when stderr is None
+        pass
+
+
 def get_local_ip():
     """
     Retrieve the local IP address used for outgoing internet connections.
@@ -91,7 +98,7 @@ class ShareFolder:
         chdir(self.current_directory)
         self.httpd = None
         try:
-            self.httpd = HTTPServer(("", self.port), SimpleHTTPRequestHandler)
+            self.httpd = HTTPServer(("", self.port), SilentHTTPHandler)
             ip = get_local_ip()
             server_url = f"http://{ip}:{self.port}"
 
