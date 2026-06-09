@@ -4,12 +4,12 @@ from argparse import ArgumentParser
 from os import chdir, getcwd
 from socket import socket, AF_INET, SOCK_DGRAM
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from tkinter import filedialog, Tk, simpledialog, messagebox
+from tkinter import filedialog, Tk, simpledialog, messagebox, Label, Button
 from sys import exit as sys_exit
-from colorama import init as colorama_init, Fore, Style
+from sys import stdin
+from signal import signal, SIGINT
+from threading import Thread
 
-# Initialize colorama for consistent color output (only used if console is available)
-colorama_init(autoreset=True)
 
 def get_local_ip():
     """
@@ -22,6 +22,13 @@ def get_local_ip():
             return s.getsockname()[0]
         except Exception:
             return "127.0.0.1"
+        
+def is_console_available():
+    """Return True if running in a real console (stdin is a TTY)."""
+    try:
+        return stdin.isatty()
+    except Exception:
+        return False
 
 def choose_directory():
     """
@@ -31,6 +38,7 @@ def choose_directory():
     root = Tk()
     root.withdraw()
     folder_selected = filedialog.askdirectory(title="Select Folder to Share")
+    root.destroy()
     if folder_selected:
         return folder_selected
     else:
@@ -49,18 +57,23 @@ class ShareFolder:
     def setup_port(self):
         """
         Ask user for a custom port number.
-        Tries console input; falls back to GUI dialog if console is unavailable.
+        Uses console if available, otherwise falls back to GUI dialog.
         """
-        try:
-            # Try console input (works only if console is available)
-            user_input = input(f"Sharing folder: \"{self.current_directory}\"\n"
-                               f"Enter port number (default: {self.port}): ").strip()
-            if user_input:
-                port_candidate = int(user_input)
-                if 1 <= port_candidate <= 65535:
-                    self.port = port_candidate
-        except (RuntimeError, EOFError):
-            # If running in --noconsole mode, use GUI instead
+        if is_console_available():
+            # Console mode
+            try:
+                user_input = input(f"Sharing folder: \"{self.current_directory}\"\n"
+                                f"Enter port number (default: {self.port}): ").strip()
+                if user_input:
+                    port_candidate = int(user_input)
+                    if 1 <= port_candidate <= 65535:
+                        self.port = port_candidate
+                    else:
+                        print(f"Port out of range (1-65535). Using default {self.port}.")
+            except ValueError:
+                print(f"Invalid number. Using default {self.port}.")
+        else:
+            # GUI mode (e.g., when running as --noconsole exe)
             root = Tk()
             root.withdraw()
             port_candidate = simpledialog.askinteger(
@@ -69,40 +82,83 @@ class ShareFolder:
                 minvalue=1,
                 maxvalue=65535
             )
+            root.destroy()
             if port_candidate:
                 self.port = port_candidate
 
     def run_server(self):
-        """
-        Start the HTTP server and show connection info using GUI.
-        If the port is in use, show an error popup.
-        """
+        """Start the HTTP server. In GUI mode shows a control window; in console mode handles Ctrl+C."""
         chdir(self.current_directory)
-        httpd = None
+        self.httpd = None
         try:
-            server_address = ("", self.port)
-            httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
-
-            # Build the server URL and show it
+            self.httpd = HTTPServer(("", self.port), SimpleHTTPRequestHandler)
             ip = get_local_ip()
             server_url = f"http://{ip}:{self.port}"
 
-            root = Tk()
-            root.withdraw()
-            messagebox.showinfo("Server Started", f"Server is running at:\n{server_url}\n\n"
-                                                  "Leave this window open while sharing files.\n"
-                                                  "Close it to stop the server.")
+            # Decide mode based on console availability
+            if is_console_available():
+                # Console mode: print info and wait for Ctrl+C
+                print(f"Serving directory: {self.current_directory}")
+                print(f"Server running at {server_url}")
+                print("Press Ctrl+C to stop the server.")
 
-            httpd.serve_forever()
+                # Run server in a separate thread so we can catch signals
+                server_thread = Thread(target=self.httpd.serve_forever, daemon=True)
+                server_thread.start()
+
+                # Setup signal handler for graceful shutdown
+                def signal_handler(sig, frame):
+                    print("\nStopping server...")
+                    self.httpd.shutdown()
+                    server_thread.join()
+                    print("Server stopped.")
+                    sys_exit(0)
+
+                signal(SIGINT, signal_handler)
+
+                # Keep main thread alive
+                while server_thread.is_alive():
+                    server_thread.join(timeout=0.5)
+            else:
+                # GUI mode: create control window with Stop button
+                root = Tk()
+                root.title("Share Folder Server")
+                root.geometry("400x150")
+                root.resizable(False, False)
+
+                label = Label(root, text=f"Server running at:\n{server_url}\n\nClick 'Stop' to shutdown.")
+                label.pack(pady=10)
+
+                stop_btn = Button(root, text="Stop Server", command=lambda: self._shutdown_gui(root))
+                stop_btn.pack(pady=5)
+
+                # Run server in background thread
+                server_thread = Thread(target=self.httpd.serve_forever, daemon=True)
+                server_thread.start()
+
+                # Close window also shuts down
+                root.protocol("WM_DELETE_WINDOW", lambda: self._shutdown_gui(root))
+                root.mainloop()
 
         except OSError as e:
-            root = Tk()
-            root.withdraw()
-            messagebox.showerror("Server Error", f"Failed to start server:\n{str(e)}")
+            if not is_console_available():
+                root = Tk()
+                root.withdraw()
+                messagebox.showerror("Server Error", f"Failed to start server:\n{str(e)}")
+                root.destroy()
+            else:
+                print(f"Error: {str(e)}")
             return 1
-
         finally:
             chdir(self.original_directory)
+        return 0
+
+    def _shutdown_gui(self, root):
+        """Helper to shutdown server and close GUI window."""
+        if self.httpd:
+            self.httpd.shutdown()
+        root.quit()
+        root.destroy()
 
     def run(self):
         """
@@ -124,7 +180,7 @@ def main():
 
     # Validate the port range
     if args.port < 1 or args.port > 65535:
-        print(f"{Fore.RED}Error: Port must be between 1 and 65535.{Style.RESET_ALL}")
+        print("Error: Port must be between 1 and 65535.")
         return 1
 
     app = ShareFolder(directory=args.directory, port=args.port)
