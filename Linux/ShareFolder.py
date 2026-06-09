@@ -129,7 +129,7 @@ class ShareFolder:
                 label = Label(root, text=f"Server running at:\n{server_url}\n\nClick 'Stop' to shutdown.")
                 label.pack(pady=10)
 
-                stop_btn = Button(root, text="Stop Server", command=lambda: self._shutdown_gui(root))
+                stop_btn = Button(root, text="Stop Server", command=lambda: (self.httpd.shutdown() if self.httpd else None, root.quit(), root.destroy()))
                 stop_btn.pack(pady=5)
 
                 # Run server in background thread
@@ -137,7 +137,7 @@ class ShareFolder:
                 server_thread.start()
 
                 # Close window also shuts down
-                root.protocol("WM_DELETE_WINDOW", lambda: self._shutdown_gui(root))
+                root.protocol("WM_DELETE_WINDOW", lambda: (self.httpd.shutdown() if self.httpd else None, root.quit(), root.destroy()))
                 root.mainloop()
 
         except OSError as e:
@@ -152,13 +152,6 @@ class ShareFolder:
         finally:
             chdir(self.original_directory)
         return 0
-
-    def _shutdown_gui(self, root):
-        """Helper to shutdown server and close GUI window."""
-        if self.httpd:
-            self.httpd.shutdown()
-        root.quit()
-        root.destroy()
 
     def run(self):
         """
